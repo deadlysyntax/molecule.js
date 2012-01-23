@@ -1,29 +1,42 @@
 require_relative 'wingman'
+# Date our database backups with the current time
+time        = Time.new
+timestamp   = time.strftime("%d-%m-%Y-%H-%M-%S")
 #initialize our array of servers to backup
 servers = []
-# Some of these values will be pulled from Molecule, such as databases
-
+# Some of these values will be pulled from Lucid, such as databases
 #Boom staging
-boom =  {
-    ssh_host: "", 
-    ssh_user: "oli",
-    ssh_pass: "",
-    ssh_port: 22,
-    mysql_db: "boom_gen2",
-    mysql_user: "boom_prod",
-    mysql_pass: "",
-    remote_path: "/tmp",
-    local_path: "~/Applications/admin/backup_temp"
-  }
-
-servers << boom
-
+one =  {
+    ssh_host:     "", 
+    ssh_user:     "",
+    ssh_pass:     "",
+    ssh_port:     22,
+    mysql_db:     "",
+    mysql_user:   "",
+    mysql_pass:   "",
+    remote_path:  "/tmp",
+    local_path:   ""
+}
+  
+two = {
+    ssh_host:     "", 
+    ssh_user:     "",
+    ssh_pass:     "",
+    ssh_port:     22,
+    mysql_db:     "",
+    mysql_user:   "",
+    mysql_pass:   "",
+    remote_path:  "/tmp",
+    local_path:   "/"
+}
+  
+# Add to our servers array
+servers << one
+servers << two
 #cycle through each server
 servers.each do |server|
-
-  backup_process = Wingman.new( server)
-  
-  backup_process.back_me_up
-
+  backup_process = Wingman.new( server, timestamp ).back_me_up
 end
+
+Wingman::update_repository( boom[:local_path], timestamp )
 
