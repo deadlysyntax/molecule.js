@@ -94,6 +94,10 @@
 	{
 			// Initialize
 			this.config.init(config);
+			
+			// TODO run our plugin engine here
+			// see https://github.com/deadlysyntax/molecule.js/issues/5
+			
 			// Apply standard Molecule specific event handlers to the page
 			this.event_handlers.attach(this);
 			// Run any initial_commands set in options
@@ -108,30 +112,33 @@
 	Molecule.prototype.config = {
 		// Defaults
 		items: {
-			"resources"         : {}, // These must be the pluralized version of the resource
-			"lens"              : "#lens",
-			//"scope"             : "#scope", TODO Deprecated
+			"resources"         : {},      // These must be the pluralized version of the resource, can include rules and settings for specific resources
+			"lens"              : "#lens", // TODO this could probably be deprecate - default place to append results (dont think it's used / works anymore)
+			//"scope"             : "#scope",  Deprecated
 			"command_line_form" : "#command_line",
 			"command_line_input": "#command_line input",
-			"action_buttons"    : "input[type='submit'], a.resource_button, a.helper_button",
-			"initial_commands"  : [],
-			//"target_selector"   : "#", TODO Deprecated
-			"lens_form"         : ".inner_form_wrapper form",
-			"append_to"         : "",
-			"alert_element"     : "#notifier p",
-			"multiword_filter"  : /\|/g
+			"action_buttons"    : "input[type='submit'], a.resource_button, a.helper_button", // Note- multiple, comma separated css selectors in the one string
+			"initial_commands"  : [],      // array of commands to be run upon initialization
+			//"target_selector"   : "#", Deprecated
+			"lens_form"         : ".inner_form_wrapper form", // TODO this could probably be deprecated - default place to append results (dont think it's used / works anymore)
+			"append_to"         : "", // TODO this could probably be deprecate - default place to append results (dont think it's used / works anymore)
+			"alert_element"     : "#notifier p", // Which element are the error messages appended to ?
+			"multiword_filter"  : /\|/g // Used to determine how to separate multiple words - perhaps deprecated I don't think this function is operating but instead uses underscores _ ?? Check
 		},
 		
 		init: function( config )
 		{
-	    	for (var key in config)
+	    	// TODO initialize defaults set in plugin files
+			// see https://github.com/deadlysyntax/molecule.js/issues/5
+	
+			for (var key in config)
 				this.set(key, config[key]);
 		},
 		
 		get: function( key )
 		{
 	    	if ( this.items[key] === undefined )
-				throw new Error($config[key] + ' configuration item does not exist');
+				throw new Error($config[key] + ' configuration item does not exist'); // TODO - load string from language file (perhaps not though, as this is system level not user level)
 	    	else
 				return this.items[key];
 		},
@@ -139,7 +146,7 @@
 		set: function( key, value )
 		{
 	    	if ( this.items[key] === undefined )
-				throw new Error($items[key] + ' is not a valid configuration option');
+				throw new Error($items[key] + ' is not a valid configuration option'); // TODO - load string from language file (perhaps not though, as this is system level not user level)
 	    	else
 				this.items[key] = value;
 		}
@@ -178,23 +185,24 @@
 			Syntax analysis populates these values which are then used by the command procedures
 		
 		**/
+		// TODO also load these from plugin files
 		action: {
-			'procedure'          : '',
+			'procedure'          : '', // such as show new create edit destroy 
 			'resource_id'        : '',
-			'acts_on'            : '',
-			'append_to'          : '',
-			'to_empty'           : '',
-			'to_remove'          : '',
-			'to_hide'            : '',
-			'to_unhide'          : '',
-			'order'              : '',
-			'to_extract_from'    : '',
-			'data'               : '',
-			'post_command_chain' : [],
-			'dom_data'           : '',
-			'element_to_replace' : '',
-			'replace_with'       : '',
-			'where'              : []
+			'acts_on'            : '', // the resource we're working on
+			'append_to'          : '', // dom element to append the result of ajax requests to
+			'to_empty'           : '', // dom element to empty
+			'to_remove'          : '', // dom element to remove
+			'to_hide'            : '', // dom element to hide
+			'to_unhide'          : '', // dom element to unhide
+			'order'              : '', // TODO check out the use of this
+			'to_extract_from'    : '', // dom element - a css style selector for which form element to use POST data from
+			'data'               : '', // Stores the serialized data extracted from to_extract_from for passing through our ajax request
+			'post_command_chain' : [], // Becomes an array of commands to run in succession - this is accomplished with the 'then' command
+			'dom_data'           : '', // Stores the result from ajax calls to be appended to the dom if amny exists
+			'element_to_replace' : '', // dom element - a css style selector for specifying an element to be relpaced 
+			'replace_with'       : '', // string of html  
+			'where'              : [] // stores the clause passed to Molecule.prototype.helper.build_where_clause()
 		},
 		
 		/**
@@ -211,12 +219,17 @@
 			if( Object.prototype.toString.call( entity.command_procedures[ entity.command.action.procedure ] ) == '[object Object]' )
 			{
 				// Don't let certain commands be through the command line, such as resource editing which relies on form data. 
+				// responds_to_commandline can be set as an initialization option
 				if( entity.command_procedures[ entity.command.action.procedure ].responds_to_commandline == 'no' && command_line_status == 'active')
 				{
 					entity.helper.notify("Invalid command - this command cannot be run through the command-line.", 'error', entity);
 				}
 				else
 				{
+					// TODO add filter here for run engine for compiling the object passed in to the following act() method
+					// this will allow us to set both defaults and run extensions loaded from plugins
+					// see https://github.com/deadlysyntax/molecule.js/issues/5
+					
 					// Run the command with the given paramters
 					entity.command_procedures[ entity.command.action.procedure ].act( 
 					{
@@ -595,7 +608,7 @@
 				if( parameters['replace_with'] == 'result' )
 					target_element.replaceWith( $( parameters['dom_data'] ) );
 				else
-					target_element.replaceWith( $( parameters['replace_with'] ) );
+					target_element.replaceWith( $( parameters['replace_with'] ) ); // TODO test where / how this value can be set, not sure 
 				// Run post commands
 				if( parameters['post_command_chain'].length > 0 )
 					entity.command.post_command_processor( parameters['post_command_chain'], entity );
